@@ -23,6 +23,12 @@ import {
   Brain,
   Sparkles,
   Star,
+  Sunrise,
+  Sunset,
+  FastForward,
+  BarChart3,
+  ArrowUpCircle,
+  ArrowDownCircle,
 } from "lucide-react";
 import {
   fetchDailyStockData,
@@ -375,7 +381,7 @@ export const ImmersiveDashboard = () => {
               </div>
               
               <div className="glass-card p-4 text-center hover-lift">
-                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">🌅 Moon Rise</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2 flex items-center gap-1.5"><Sunrise className="w-3.5 h-3.5 text-orange-400" /> Moon Rise</p>
                 <p className="text-foreground font-display text-xl font-semibold">
                   {(() => {
                     const baseHour = 18 + Math.floor(selectedData.age * 0.8);
@@ -388,7 +394,7 @@ export const ImmersiveDashboard = () => {
               </div>
               
               <div className="glass-card p-4 text-center hover-lift">
-                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">🌇 Moon Set</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2 flex items-center gap-1.5"><Sunset className="w-3.5 h-3.5 text-purple-400" /> Moon Set</p>
                 <p className="text-foreground font-display text-xl font-semibold">
                   {(() => {
                     const baseHour = 6 + Math.floor(selectedData.age * 0.8);
@@ -401,7 +407,7 @@ export const ImmersiveDashboard = () => {
               </div>
 
               <div className="glass-card p-4 text-center hover-lift border border-primary/20">
-                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">⏭️ Next Phase</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2 flex items-center gap-1.5"><FastForward className="w-3.5 h-3.5 text-cyan-400" /> Next Phase</p>
                 <p className="text-primary font-display text-base font-bold">
                   {(() => {
                     const p = selectedData.phase;
@@ -491,21 +497,21 @@ export const ImmersiveDashboard = () => {
               </div>
               
               <div className="glass-card p-4 text-center hover-lift border-l-2 border-green-500/50">
-                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">📈 Day High</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2 flex items-center gap-1.5"><ArrowUpCircle className="w-3.5 h-3.5 text-green-400" /> Day High</p>
                 <p className="text-green-400 font-display text-xl font-bold">
                   ${selectedData.high?.toFixed(2) || selectedData.price.toFixed(2)}
                 </p>
               </div>
               
               <div className="glass-card p-4 text-center hover-lift border-l-2 border-red-500/50">
-                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">📉 Day Low</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2 flex items-center gap-1.5"><ArrowDownCircle className="w-3.5 h-3.5 text-red-400" /> Day Low</p>
                 <p className="text-red-400 font-display text-xl font-bold">
                   ${selectedData.low?.toFixed(2) || selectedData.price.toFixed(2)}
                 </p>
               </div>
 
               <div className="glass-card p-4 text-center hover-lift">
-                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">📊 Volume</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2 flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5 text-blue-400" /> Volume</p>
                 <p className="text-foreground font-display text-xl font-bold">
                   {selectedData.volume 
                     ? `${(selectedData.volume / 1000000).toFixed(1)}M`
@@ -548,17 +554,17 @@ export const ImmersiveDashboard = () => {
             >
               {selectedData.moonName && selectedData.moonName.length > 0 && (
                 <span className="px-4 py-2 glass-card text-primary text-sm font-medium">
-                  🌙 {selectedData.moonName.join(", ")}
+                  <Moon className="w-4 h-4 inline mr-1" /> {selectedData.moonName.join(", ")}
                 </span>
               )}
               {selectedData.isSupermoon && (
                 <span className="px-4 py-2 glass-card text-yellow-400 text-sm font-medium">
-                  ✨ Supermoon
+                  <Sparkles className="w-4 h-4 inline mr-1" /> Supermoon
                 </span>
               )}
               {selectedData.isMicromoon && (
                 <span className="px-4 py-2 glass-card text-blue-400 text-sm font-medium">
-                  🔭 Micromoon
+                  <Star className="w-4 h-4 inline mr-1" /> Micromoon
                 </span>
               )}
             </motion.div>
@@ -969,7 +975,7 @@ export const ImmersiveDashboard = () => {
                 </p>
               </div>
               <span className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 font-medium">
-                ✨ Powered by Mistral AI
+                <Sparkles className="w-3 h-3 inline mr-1" /> Powered by Mistral AI
               </span>
             </div>
 

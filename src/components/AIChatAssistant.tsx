@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Send, X, Sparkles, Loader2, Moon, Stars } from "lucide-react";
+import { MessageCircle, Send, X, Sparkles, Loader2, Moon, Stars, TrendingUp, HelpCircle } from "lucide-react";
 import { chatWithLunarAssistant, ChatMessage } from "@/lib/mistralAI";
 
 interface AIChatAssistantProps {
@@ -113,7 +113,7 @@ ChatStars.displayName = "ChatStars";
 export const AIChatAssistant = memo(({ context }: AIChatAssistantProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: "Greetings, cosmic traveler! ✨ I'm Luna, your celestial guide through the mysteries of lunar cycles and market patterns. What secrets of the cosmos shall we explore together?" }
+    { role: "assistant", content: "Greetings, cosmic traveler! I'm Luna, your celestial guide through the mysteries of lunar cycles and market patterns. What secrets of the cosmos shall we explore together?" }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -153,9 +153,9 @@ export const AIChatAssistant = memo(({ context }: AIChatAssistantProps) => {
   };
 
   const suggestedQuestions = [
-    "🌙 What does this moon phase mean?",
-    "📈 Best time to invest?",
-    "⭐ How does zodiac affect markets?",
+    { icon: Moon, text: "What does this moon phase mean?" },
+    { icon: TrendingUp, text: "Best time to invest?" },
+    { icon: HelpCircle, text: "How does zodiac affect markets?" },
   ];
 
   // Calculate phase from illumination for mini moon
@@ -335,27 +335,31 @@ export const AIChatAssistant = memo(({ context }: AIChatAssistantProps) => {
             {/* Suggested Questions */}
             {messages.length <= 2 && (
               <div className="px-4 pb-3 flex flex-wrap gap-2 relative z-10">
-                {suggestedQuestions.map((q, i) => (
-                  <motion.button
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    onClick={() => setInput(q.replace(/^[^\s]+\s/, ""))}
-                    className="text-xs px-3 py-2 rounded-xl transition-all duration-200"
-                    style={{
-                      background: "linear-gradient(135deg, hsl(222, 47%, 14%) 0%, hsl(222, 47%, 10%) 100%)",
-                      border: "1px solid rgba(99, 102, 241, 0.2)",
-                      color: "hsl(215, 20%, 65%)",
-                    }}
-                    whileHover={{ 
-                      scale: 1.02,
-                      boxShadow: "0 0 15px rgba(99, 102, 241, 0.2)",
-                    }}
-                  >
-                    {q}
-                  </motion.button>
-                ))}
+                {suggestedQuestions.map((q, i) => {
+                  const IconComponent = q.icon;
+                  return (
+                    <motion.button
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      onClick={() => setInput(q.text)}
+                      className="text-xs px-3 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5"
+                      style={{
+                        background: "linear-gradient(135deg, hsl(222, 47%, 14%) 0%, hsl(222, 47%, 10%) 100%)",
+                        border: "1px solid rgba(99, 102, 241, 0.2)",
+                        color: "hsl(215, 20%, 65%)",
+                      }}
+                      whileHover={{ 
+                        scale: 1.02,
+                        boxShadow: "0 0 15px rgba(99, 102, 241, 0.2)",
+                      }}
+                    >
+                      <IconComponent className="w-3 h-3" />
+                      {q.text}
+                    </motion.button>
+                  );
+                })}
               </div>
             )}
 

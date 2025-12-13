@@ -287,29 +287,15 @@ export const ImmersiveDashboard = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="flex items-center gap-3">
-                <motion.div
-                  className="relative"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Moon className="w-8 h-8 md:w-10 md:h-10 text-primary" />
-                  <motion.div
-                    className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full"
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                </motion.div>
-                <div>
-                  <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-cyan-400 bg-clip-text text-transparent">
-                    Lunar Markets
-                  </h1>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <Sparkles className="w-3 h-3 text-primary/60" />
-                    <p className="text-muted-foreground text-xs md:text-sm tracking-wide">
-                      Where Celestial Cycles Meet Market Rhythms
-                    </p>
-                  </div>
+              <div>
+                <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-cyan-400 bg-clip-text text-transparent">
+                  Lunar Markets
+                </h1>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Sparkles className="w-3 h-3 text-primary/60" />
+                  <p className="text-muted-foreground text-xs md:text-sm tracking-wide">
+                    Where Celestial Cycles Meet Market Rhythms
+                  </p>
                 </div>
               </div>
             </motion.div>

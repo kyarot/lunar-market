@@ -1,4 +1,4 @@
-import { Dashboard } from "@/components/Dashboard";
+import { ImmersiveDashboard } from "@/components/ImmersiveDashboard";
 import { Helmet } from "react-helmet";
 
 const Index = () => {
@@ -11,7 +11,7 @@ const Index = () => {
           content="Explore the fascinating correlation between stock market performance and lunar cycles with our premium data visualization dashboard."
         />
       </Helmet>
-      <Dashboard />
+      <ImmersiveDashboard />
     </>
   );
 };

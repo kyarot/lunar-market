@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface HeroMoonProps {
@@ -8,36 +8,99 @@ interface HeroMoonProps {
   date: Date;
 }
 
-export const HeroMoon = ({ phase, phaseName, illumination, date }: HeroMoonProps) => {
-  const moonPath = useMemo(() => {
-    const size = 400;
-    const center = size / 2;
-    const radius = size / 2 - 20;
+// Realistic moon component with proper phase rendering (defined first)
+const RealisticMoon = memo(({ phase, illumination }: { phase: number; illumination: number }) => {
+  const size = 400;
+  const cx = 200;
+  const cy = 200;
+  const r = 175;
 
-    const shadowPhase = phase * 2 * Math.PI;
-    const curveOffset = Math.cos(shadowPhase) * radius;
-
-    if (phase < 0.01 || phase > 0.99) {
-      return `M ${center},${center - radius} A ${radius},${radius} 0 1,1 ${center},${center + radius} A ${radius},${radius} 0 1,1 ${center},${center - radius}`;
-    }
-
-    if (phase > 0.49 && phase < 0.51) {
-      return "";
-    }
-
-    const isWaxing = phase < 0.5;
+  const shadowPath = useMemo(() => {
+    const p = ((phase % 1) + 1) % 1;
     
-    if (isWaxing) {
-      return `M ${center},${center - radius} 
-              A ${radius},${radius} 0 1,0 ${center},${center + radius} 
-              A ${Math.abs(curveOffset)},${radius} 0 0,${curveOffset > 0 ? 1 : 0} ${center},${center - radius}`;
-    } else {
-      return `M ${center},${center - radius} 
-              A ${radius},${radius} 0 1,1 ${center},${center + radius} 
-              A ${Math.abs(curveOffset)},${radius} 0 0,${curveOffset > 0 ? 0 : 1} ${center},${center - radius}`;
+    if (p > 0.47 && p < 0.53) return null;
+    if (p < 0.03 || p > 0.97) {
+      return `M ${cx - r} ${cy} A ${r} ${r} 0 1 1 ${cx + r} ${cy} A ${r} ${r} 0 1 1 ${cx - r} ${cy}`;
     }
+
+    const cosPhase = Math.cos(p * 2 * Math.PI);
+    const points: string[] = [];
+    const numPoints = 50;
+
+    if (p < 0.5) {
+      for (let i = 0; i <= numPoints; i++) {
+        const angle = -Math.PI / 2 + (Math.PI * i) / numPoints;
+        const x = cx - r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        points.push(i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`);
+      }
+      for (let i = numPoints; i >= 0; i--) {
+        const angle = -Math.PI / 2 + (Math.PI * i) / numPoints;
+        const terminatorX = cx + r * Math.cos(angle) * cosPhase;
+        const y = cy + r * Math.sin(angle);
+        points.push(`L ${terminatorX} ${y}`);
+      }
+    } else {
+      for (let i = 0; i <= numPoints; i++) {
+        const angle = -Math.PI / 2 + (Math.PI * i) / numPoints;
+        const terminatorX = cx + r * Math.cos(angle) * cosPhase;
+        const y = cy + r * Math.sin(angle);
+        points.push(i === 0 ? `M ${terminatorX} ${y}` : `L ${terminatorX} ${y}`);
+      }
+      for (let i = numPoints; i >= 0; i--) {
+        const angle = -Math.PI / 2 + (Math.PI * i) / numPoints;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        points.push(`L ${x} ${y}`);
+      }
+    }
+    points.push("Z");
+    return points.join(" ");
   }, [phase]);
 
+  const glowIntensity = illumination / 100;
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="relative z-10"
+      style={{ filter: `drop-shadow(0 0 ${20 + glowIntensity * 40}px rgba(220, 230, 255, ${0.2 + glowIntensity * 0.3}))` }}>
+      <defs>
+        <radialGradient id="litSurface" cx="35%" cy="35%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="30%" stopColor="#F0F0F0" />
+          <stop offset="60%" stopColor="#E0E0E0" />
+          <stop offset="100%" stopColor="#C0C0C0" />
+        </radialGradient>
+        <radialGradient id="darkSurface" cx="50%" cy="50%">
+          <stop offset="0%" stopColor="#1e1e2e" />
+          <stop offset="100%" stopColor="#0a0a14" />
+        </radialGradient>
+        <clipPath id="moonCircle">
+          <circle cx={cx} cy={cy} r={r} />
+        </clipPath>
+      </defs>
+      <circle cx={cx} cy={cy} r={r + 5} fill="none" stroke={`rgba(200, 220, 255, ${0.15 + glowIntensity * 0.1})`} strokeWidth="1" />
+      <circle cx={cx} cy={cy} r={r} fill="url(#litSurface)" />
+      <g opacity="0.2" clipPath="url(#moonCircle)">
+        <circle cx={cx - 50} cy={cy - 60} r="22" fill="#B0B0B0" />
+        <circle cx={cx + 40} cy={cy - 30} r="15" fill="#A8A8A8" />
+        <circle cx={cx - 20} cy={cy + 50} r="28" fill="#B8B8B8" />
+        <circle cx={cx + 60} cy={cy + 40} r="12" fill="#A0A0A0" />
+        <circle cx={cx - 70} cy={cy + 10} r="14" fill="#B4B4B4" />
+        <circle cx={cx + 70} cy={cy - 60} r="10" fill="#ACACAC" />
+      </g>
+      {shadowPath && (
+        <g clipPath="url(#moonCircle)">
+          <path d={shadowPath} fill="url(#darkSurface)" opacity="0.98" />
+        </g>
+      )}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={`rgba(255, 255, 255, ${0.1 * glowIntensity})`} strokeWidth="1.5" />
+    </svg>
+  );
+});
+
+RealisticMoon.displayName = "RealisticMoon";
+
+export const HeroMoon = memo(({ phase, phaseName, illumination, date }: HeroMoonProps) => {
   const formattedDate = date.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -45,146 +108,95 @@ export const HeroMoon = ({ phase, phaseName, illumination, date }: HeroMoonProps
     year: "numeric",
   });
 
+  const glowIntensity = illumination / 100;
+
   return (
     <div className="flex flex-col items-center justify-center">
-      {/* Massive Moon */}
       <motion.div
         className="relative"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        {/* Outer glow layers */}
-        <div className="absolute inset-0 scale-150 bg-moon-glow/5 rounded-full blur-[100px]" />
-        <div className="absolute inset-0 scale-125 bg-moon-glow/10 rounded-full blur-[60px]" />
-        <div className="absolute inset-0 scale-110 bg-moon-glow/15 rounded-full blur-[30px]" />
-        
-        <svg
-          width="400"
-          height="400"
-          viewBox="0 0 400 400"
-          className="relative z-10 drop-shadow-[0_0_60px_hsl(var(--moon-glow)/0.4)]"
-        >
-          <defs>
-            <radialGradient id="heroMoonGradient" cx="35%" cy="35%">
-              <stop offset="0%" stopColor="#F5F5F5" />
-              <stop offset="40%" stopColor="#E8E8E8" />
-              <stop offset="70%" stopColor="#D0D0D0" />
-              <stop offset="100%" stopColor="#A8A8A8" />
-            </radialGradient>
-            <filter id="moonGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          
-          {/* Subtle outer ring */}
-          <circle
-            cx="200"
-            cy="200"
-            r="185"
-            fill="none"
-            stroke="hsl(var(--moon-glow))"
-            strokeWidth="0.5"
-            opacity="0.15"
-          />
-          
-          {/* Moon surface */}
-          <motion.circle
-            cx="200"
-            cy="200"
-            r="180"
-            fill="url(#heroMoonGradient)"
-            filter="url(#moonGlow)"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-          />
-          
-          {/* Crater details - more realistic distribution */}
-          <g opacity="0.25">
-            <circle cx="140" cy="120" r="25" fill="#C0C0C0" />
-            <circle cx="240" cy="160" r="18" fill="#B8B8B8" />
-            <circle cx="170" cy="240" r="30" fill="#C8C8C8" />
-            <circle cx="260" cy="260" r="12" fill="#BABABA" />
-            <circle cx="120" cy="200" r="15" fill="#C4C4C4" />
-            <circle cx="280" cy="120" r="10" fill="#BCBCBC" />
-            <circle cx="200" cy="300" r="20" fill="#C2C2C2" />
-            <circle cx="320" cy="200" r="8" fill="#BEBEBE" />
-          </g>
-          
-          {/* Shadow overlay with smooth transition */}
-          <AnimatePresence mode="wait">
-            {moonPath && (
-              <motion.path
-                key={phase.toFixed(2)}
-                d={moonPath}
-                fill="hsl(var(--background))"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.97 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease: "easeInOut" }}
-              />
-            )}
-          </AnimatePresence>
-        </svg>
+        {/* Glow effects */}
+        <motion.div
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            scale: 1.8,
+            background: `radial-gradient(circle, rgba(220, 230, 255, ${0.1 * glowIntensity}) 0%, transparent 70%)`,
+            filter: "blur(50px)",
+          }}
+          animate={{ scale: [1.8, 2, 1.8], opacity: [0.8, 1, 0.8] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <RealisticMoon phase={phase} illumination={illumination} />
+
+        {/* Sparkles */}
+        {[...Array(6)].map((_, i) => {
+          const angle = (i / 6) * Math.PI * 2;
+          const sparkleR = 210;
+          return (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full pointer-events-none"
+              style={{
+                left: 200 + Math.cos(angle) * sparkleR - 200,
+                top: 200 + Math.sin(angle) * sparkleR - 200,
+                boxShadow: "0 0 4px 2px rgba(255,255,255,0.5)",
+              }}
+              animate={{ opacity: [0, 0.7 * glowIntensity, 0], scale: [0.5, 1.2, 0.5] }}
+              transition={{ duration: 2, delay: i * 0.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          );
+        })}
       </motion.div>
 
-      {/* Moon Info - Below the moon */}
+      {/* Moon Info */}
       <motion.div
-        className="mt-12 text-center"
+        className="mt-10 text-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.8 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
       >
         <AnimatePresence mode="wait">
           <motion.h1
             key={phaseName}
-            className="font-display text-4xl md:text-5xl font-semibold text-foreground mb-3"
+            className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-2"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.3 }}
           >
             {phaseName}
           </motion.h1>
         </AnimatePresence>
-        
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={formattedDate}
-            className="text-muted-foreground text-lg mb-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {formattedDate}
-          </motion.p>
-        </AnimatePresence>
 
-        <motion.div 
-          className="flex items-center justify-center gap-2"
+        <motion.p
+          key={date.getTime()}
+          className="text-muted-foreground text-base mb-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
-          <div className="w-24 h-1.5 bg-muted/50 rounded-full overflow-hidden">
+          {formattedDate}
+        </motion.p>
+
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-20 h-1.5 bg-muted/50 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-primary/80 to-cyan-400/60 rounded-full"
-              initial={{ width: 0 }}
               animate={{ width: `${illumination}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
-          <span className="text-muted-foreground text-sm font-medium">
-            {illumination.toFixed(0)}% illuminated
+          <span className="text-muted-foreground text-sm">
+            {illumination.toFixed(0)}%
           </span>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );
-};
+});
+
+HeroMoon.displayName = "HeroMoon";

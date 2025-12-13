@@ -724,6 +724,13 @@ export const ImmersiveDashboard = () => {
               phaseName={selectedData.phaseName}
               price={selectedData.price}
               avgPrice={avgPrice}
+              stockSymbol={selectedSymbol}
+              priceChange={selectedIndex > 0 
+                ? ((selectedData.price - data[selectedIndex - 1].price) / data[selectedIndex - 1].price) * 100 
+                : 0}
+              zodiac={selectedData.zodiac}
+              illumination={selectedData.illumination}
+              date={selectedData.date}
             />
           </div>
 

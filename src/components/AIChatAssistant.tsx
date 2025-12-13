@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Send, X, Sparkles, Loader2, Moon, Stars, TrendingUp, HelpCircle } from "lucide-react";
 import { chatWithLunarAssistant, ChatMessage } from "@/lib/mistralAI";
+import { useSounds } from "@/lib/sounds";
 
 interface AIChatAssistantProps {
   context: {
@@ -118,6 +119,9 @@ export const AIChatAssistant = memo(({ context }: AIChatAssistantProps) => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Sound effects
+  const { playChatToggle, playSend, playReceive, playClick } = useSounds();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -130,6 +134,7 @@ export const AIChatAssistant = memo(({ context }: AIChatAssistantProps) => {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
+    playSend();
     const userMessage: ChatMessage = { role: "user", content: input.trim() };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
@@ -138,11 +143,17 @@ export const AIChatAssistant = memo(({ context }: AIChatAssistantProps) => {
     try {
       const response = await chatWithLunarAssistant([...messages, userMessage], context);
       setMessages(prev => [...prev, { role: "assistant", content: response }]);
+      playReceive();
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "The cosmic connection wavered... Please try again." }]);
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleToggle = () => {
+    playChatToggle(!isOpen);
+    setIsOpen(!isOpen);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -168,7 +179,7 @@ export const AIChatAssistant = memo(({ context }: AIChatAssistantProps) => {
       {/* Floating Chat Toggle Button with Glow */}
       <motion.button
         className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full flex items-center justify-center"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         style={{
@@ -343,7 +354,10 @@ export const AIChatAssistant = memo(({ context }: AIChatAssistantProps) => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      onClick={() => setInput(q.text)}
+                      onClick={() => {
+                        setInput(q.text);
+                        playClick();
+                      }}
                       className="text-xs px-3 py-2 rounded-xl transition-all duration-200 flex items-center gap-1.5"
                       style={{
                         background: "linear-gradient(135deg, hsl(222, 47%, 14%) 0%, hsl(222, 47%, 10%) 100%)",

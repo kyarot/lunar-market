@@ -21,6 +21,8 @@ import {
   Sun,
   CalendarDays,
   Brain,
+  Sparkles,
+  Star,
 } from "lucide-react";
 import {
   fetchDailyStockData,
@@ -278,36 +280,83 @@ export const ImmersiveDashboard = () => {
       {/* Scrollable Content */}
       <div className="relative z-10">
         {/* Header */}
-        <header className="sticky top-0 z-20 p-4 md:p-6 bg-gradient-to-b from-background/90 to-transparent backdrop-blur-sm">
+        <header className="sticky top-0 z-20 p-4 md:p-6 lg:p-8 bg-gradient-to-b from-background/95 via-background/80 to-transparent backdrop-blur-md">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div>
-              <h1 className="font-display text-lg font-medium text-foreground/80">
-                Lunar Markets
-              </h1>
-              <p className="text-muted-foreground/60 text-xs">
-                Real-time Moon Phases × Stock Trends
-              </p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="flex items-center gap-3">
+                <motion.div
+                  className="relative"
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Moon className="w-8 h-8 md:w-10 md:h-10 text-primary" />
+                  <motion.div
+                    className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full"
+                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </motion.div>
+                <div>
+                  <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-cyan-400 bg-clip-text text-transparent">
+                    Lunar Markets
+                  </h1>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Sparkles className="w-3 h-3 text-primary/60" />
+                    <p className="text-muted-foreground text-xs md:text-sm tracking-wide">
+                      Where Celestial Cycles Meet Market Rhythms
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
 
-            <div className="flex items-center gap-2">
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
               {isLoading && (
-                <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                  <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+                  <span className="text-xs text-primary hidden md:inline">Syncing...</span>
+                </div>
               )}
-              <select
-                value={selectedSymbol}
-                onChange={(e) => setSelectedSymbol(e.target.value)}
-                className="bg-card/60 border border-border/50 rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              >
-                {STOCK_SYMBOLS.map((stock) => (
-                  <option key={stock.symbol} value={stock.symbol}>
-                    {stock.symbol} - {stock.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div className="relative">
+                <Star className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/50 pointer-events-none" />
+                <select
+                  value={selectedSymbol}
+                  onChange={(e) => setSelectedSymbol(e.target.value)}
+                  className="bg-card/80 border border-border/50 rounded-xl pl-9 pr-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 hover:border-primary/50 transition-colors cursor-pointer appearance-none min-w-[180px]"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0.75rem center",
+                    backgroundSize: "1rem",
+                  }}
+                >
+                  {STOCK_SYMBOLS.map((stock) => (
+                    <option key={stock.symbol} value={stock.symbol}>
+                      {stock.symbol} - {stock.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </motion.div>
           </div>
           {error && (
-            <p className="text-amber-400/80 text-xs text-center mt-2">{error}</p>
+            <motion.p 
+              className="text-amber-400/80 text-xs text-center mt-3 flex items-center justify-center gap-2"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
+              {error}
+            </motion.p>
           )}
         </header>
 
@@ -317,22 +366,31 @@ export const ImmersiveDashboard = () => {
           <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center justify-center gap-6 mb-6">
             {/* Left Panel - Lunar Data */}
             <motion.div
-              className="hidden lg:flex flex-col gap-3 w-48"
+              className="hidden lg:flex flex-col gap-3 w-52"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Lunar Cycle</p>
-                <p className="text-foreground font-display text-2xl font-bold">
+              <div className="glass-card p-5 text-center hover-lift group">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Moon className="w-4 h-4 text-primary/70 group-hover:text-primary transition-colors" />
+                  <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium">Lunar Cycle</p>
+                </div>
+                <p className="text-foreground font-display text-3xl font-bold bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text">
                   Day {Math.floor(selectedData.age) + 1}
                 </p>
-                <p className="text-muted-foreground/60 text-xs">of 29.5 days</p>
+                <div className="mt-2 h-1 bg-muted/30 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-primary to-cyan-400 rounded-full"
+                    style={{ width: `${((selectedData.age + 1) / 29.5) * 100}%` }}
+                  />
+                </div>
+                <p className="text-muted-foreground/60 text-xs mt-1">of 29.5 days</p>
               </div>
               
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Moon Rise</p>
-                <p className="text-foreground font-display text-lg font-semibold">
+              <div className="glass-card p-4 text-center hover-lift">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">🌅 Moon Rise</p>
+                <p className="text-foreground font-display text-xl font-semibold">
                   {(() => {
                     const baseHour = 18 + Math.floor(selectedData.age * 0.8);
                     const hour = baseHour % 24;
@@ -343,9 +401,9 @@ export const ImmersiveDashboard = () => {
                 </p>
               </div>
               
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Moon Set</p>
-                <p className="text-foreground font-display text-lg font-semibold">
+              <div className="glass-card p-4 text-center hover-lift">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">🌇 Moon Set</p>
+                <p className="text-foreground font-display text-xl font-semibold">
                   {(() => {
                     const baseHour = 6 + Math.floor(selectedData.age * 0.8);
                     const hour = baseHour % 24;
@@ -356,9 +414,9 @@ export const ImmersiveDashboard = () => {
                 </p>
               </div>
 
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Next Phase</p>
-                <p className="text-primary font-display text-sm font-semibold">
+              <div className="glass-card p-4 text-center hover-lift border border-primary/20">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">⏭️ Next Phase</p>
+                <p className="text-primary font-display text-base font-bold">
                   {(() => {
                     const p = selectedData.phase;
                     if (p < 0.25) return "First Quarter";
@@ -367,7 +425,7 @@ export const ImmersiveDashboard = () => {
                     return "New Moon";
                   })()}
                 </p>
-                <p className="text-muted-foreground/60 text-xs">
+                <p className="text-cyan-400/80 text-sm font-medium mt-1">
                   in {(() => {
                     const p = selectedData.phase;
                     const daysInCycle = 29.53;
@@ -412,51 +470,65 @@ export const ImmersiveDashboard = () => {
 
             {/* Right Panel - Market Data */}
             <motion.div
-              className="hidden lg:flex flex-col gap-3 w-48"
+              className="hidden lg:flex flex-col gap-3 w-52"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">{selectedSymbol}</p>
+              <div className="glass-card p-5 text-center hover-lift group">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-primary/70 group-hover:text-primary transition-colors" />
+                  <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium">{selectedSymbol}</p>
+                </div>
                 <motion.p 
                   key={`side-price-${selectedData.price}`}
-                  className="text-foreground font-display text-2xl font-bold"
+                  className="text-foreground font-display text-3xl font-bold"
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
                   ${selectedData.price.toFixed(2)}
                 </motion.p>
                 {selectedIndex > 0 && (
-                  <p className={`text-xs ${data[selectedIndex].price >= data[selectedIndex - 1].price ? 'text-green-400' : 'text-red-400'}`}>
+                  <motion.div 
+                    className={`mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${
+                      data[selectedIndex].price >= data[selectedIndex - 1].price 
+                        ? 'bg-green-500/20 text-green-400' 
+                        : 'bg-red-500/20 text-red-400'
+                    }`}
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                  >
                     {data[selectedIndex].price >= data[selectedIndex - 1].price ? '▲' : '▼'} 
                     {Math.abs(((data[selectedIndex].price - data[selectedIndex - 1].price) / data[selectedIndex - 1].price) * 100).toFixed(2)}%
-                  </p>
+                  </motion.div>
                 )}
               </div>
               
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Day High</p>
-                <p className="text-green-400 font-display text-lg font-semibold">
+              <div className="glass-card p-4 text-center hover-lift border-l-2 border-green-500/50">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">📈 Day High</p>
+                <p className="text-green-400 font-display text-xl font-bold">
                   ${selectedData.high?.toFixed(2) || selectedData.price.toFixed(2)}
                 </p>
               </div>
               
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Day Low</p>
-                <p className="text-red-400 font-display text-lg font-semibold">
+              <div className="glass-card p-4 text-center hover-lift border-l-2 border-red-500/50">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">📉 Day Low</p>
+                <p className="text-red-400 font-display text-xl font-bold">
                   ${selectedData.low?.toFixed(2) || selectedData.price.toFixed(2)}
                 </p>
               </div>
 
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Volume</p>
-                <p className="text-foreground font-display text-lg font-semibold">
+              <div className="glass-card p-4 text-center hover-lift">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-2">📊 Volume</p>
+                <p className="text-foreground font-display text-xl font-bold">
                   {selectedData.volume 
                     ? `${(selectedData.volume / 1000000).toFixed(1)}M`
                     : 'N/A'
                   }
                 </p>
+                {selectedData.volume && (
+                  <p className="text-muted-foreground/50 text-xs mt-1">shares traded</p>
+                )}
               </div>
             </motion.div>
           </div>
@@ -606,121 +678,192 @@ export const ImmersiveDashboard = () => {
 
           {/* Stock Price Card */}
           <motion.div
-            className="glass-card p-4 md:p-6 w-full max-w-md mb-6 text-center"
+            className="glass-card p-6 md:p-8 w-full max-w-lg mb-8 text-center relative overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
-              {currentSymbolName} • {selectedData.date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-            </p>
-            <motion.p 
-              key={`price-${selectedIndex}-${selectedData.price.toFixed(2)}`}
-              className="text-foreground font-display text-3xl md:text-4xl font-bold"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              ${selectedData.price.toFixed(2)}
-            </motion.p>
-            {selectedData.volume && (
+            {/* Decorative gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 pointer-events-none" />
+            
+            <div className="relative z-10">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20">
+                  {selectedSymbol}
+                </span>
+                <span className="text-muted-foreground text-sm">
+                  {currentSymbolName}
+                </span>
+              </div>
+              
+              <p className="text-muted-foreground/80 text-sm mb-2">
+                {selectedData.date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              </p>
+              
               <motion.p 
-                key={`vol-${selectedIndex}`}
-                className="text-muted-foreground/60 text-xs mt-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2, delay: 0.1 }}
+                key={`price-${selectedIndex}-${selectedData.price.toFixed(2)}`}
+                className="text-foreground font-display text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
               >
-                Vol: {(selectedData.volume / 1000000).toFixed(1)}M
+                ${selectedData.price.toFixed(2)}
               </motion.p>
-            )}
+              
+              {selectedIndex > 0 && (
+                <motion.div 
+                  className={`mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
+                    data[selectedIndex].price >= data[selectedIndex - 1].price 
+                      ? 'bg-green-500/15 text-green-400 border border-green-500/30' 
+                      : 'bg-red-500/15 text-red-400 border border-red-500/30'
+                  }`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  {data[selectedIndex].price >= data[selectedIndex - 1].price ? '↑' : '↓'} 
+                  {Math.abs(((data[selectedIndex].price - data[selectedIndex - 1].price) / data[selectedIndex - 1].price) * 100).toFixed(2)}% from yesterday
+                </motion.div>
+              )}
+              
+              {selectedData.volume && (
+                <motion.p 
+                  key={`vol-${selectedIndex}`}
+                  className="text-muted-foreground/60 text-sm mt-4 flex items-center justify-center gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2, delay: 0.1 }}
+                >
+                  <Activity className="w-4 h-4" />
+                  Volume: {(selectedData.volume / 1000000).toFixed(1)}M shares
+                </motion.p>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Section Title */}
+          <motion.div 
+            className="w-full max-w-4xl mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h2 className="text-lg font-display font-semibold text-foreground/80 flex items-center gap-2">
+              <Moon className="w-5 h-5 text-primary" />
+              Lunar Statistics
+            </h2>
+            <p className="text-muted-foreground/60 text-sm">Current celestial measurements</p>
           </motion.div>
 
           {/* Moon Stats Row */}
           <motion.div
             key={`stats-${selectedIndex}`}
-            className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-4xl mb-6"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl mb-8"
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="glass-card p-4 hover-lift">
-              <div className="flex items-center gap-2 mb-2">
-                <Moon className="w-4 h-4 text-primary/70" />
-                <span className="text-muted-foreground text-xs uppercase tracking-wider">
+            <div className="glass-card p-5 hover-lift group">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                  <Moon className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-muted-foreground text-xs uppercase tracking-widest font-medium">
                   Lunar Age
                 </span>
               </div>
               <motion.p 
                 key={`age-${selectedData.age.toFixed(1)}`}
-                className="text-foreground font-display text-xl font-semibold"
+                className="text-foreground font-display text-2xl font-bold"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                {selectedData.age.toFixed(1)}{" "}
-                <span className="text-sm text-muted-foreground">days</span>
+                {selectedData.age.toFixed(1)}
+                <span className="text-sm text-muted-foreground font-normal ml-1">days</span>
               </motion.p>
+              <p className="text-muted-foreground/50 text-xs mt-1">since new moon</p>
             </div>
 
-            <div className="glass-card p-4 hover-lift">
-              <div className="flex items-center gap-2 mb-2">
-                <Compass className="w-4 h-4 text-cyan-400/70" />
-                <span className="text-muted-foreground text-xs uppercase tracking-wider">
+            <div className="glass-card p-5 hover-lift group">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-cyan-500/10 group-hover:bg-cyan-500/20 transition-colors">
+                  <Compass className="w-4 h-4 text-cyan-400" />
+                </div>
+                <span className="text-muted-foreground text-xs uppercase tracking-widest font-medium">
                   Zodiac
                 </span>
               </div>
               <motion.p 
                 key={`zodiac-${selectedData.zodiac}`}
-                className="text-foreground font-display text-xl font-semibold"
+                className="text-foreground font-display text-2xl font-bold"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
               >
                 {selectedData.zodiac}
               </motion.p>
+              <p className="text-muted-foreground/50 text-xs mt-1">moon position</p>
             </div>
 
-            <div className="glass-card p-4 hover-lift">
-              <div className="flex items-center gap-2 mb-2">
-                <Activity className="w-4 h-4 text-green-400/70" />
-                <span className="text-muted-foreground text-xs uppercase tracking-wider">
-                  Moon Distance
+            <div className="glass-card p-5 hover-lift group">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
+                  <Activity className="w-4 h-4 text-green-400" />
+                </div>
+                <span className="text-muted-foreground text-xs uppercase tracking-widest font-medium">
+                  Distance
                 </span>
               </div>
               <motion.p 
                 key={`distance-${selectedData.distance.toFixed(0)}`}
-                className="text-foreground font-display text-xl font-semibold"
+                className="text-foreground font-display text-2xl font-bold"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                {(selectedData.distance / 1000).toFixed(0)}k{" "}
-                <span className="text-sm text-muted-foreground">km</span>
+                {(selectedData.distance / 1000).toFixed(0)}k
+                <span className="text-sm text-muted-foreground font-normal ml-1">km</span>
               </motion.p>
+              <p className="text-muted-foreground/50 text-xs mt-1">from Earth</p>
             </div>
 
-            <div className="glass-card p-4 hover-lift">
-              <div className="flex items-center gap-2 mb-2">
-                <Sun className="w-4 h-4 text-yellow-400/70" />
-                <span className="text-muted-foreground text-xs uppercase tracking-wider">
+            <div className="glass-card p-5 hover-lift group">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-yellow-500/10 group-hover:bg-yellow-500/20 transition-colors">
+                  <Sun className="w-4 h-4 text-yellow-400" />
+                </div>
+                <span className="text-muted-foreground text-xs uppercase tracking-widest font-medium">
                   Illumination
                 </span>
               </div>
               <motion.p 
                 key={`illum-${selectedData.illumination.toFixed(0)}`}
-                className="text-foreground font-display text-xl font-semibold"
+                className="text-foreground font-display text-2xl font-bold"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
               >
                 {selectedData.illumination.toFixed(0)}
-                <span className="text-sm text-muted-foreground">%</span>
+                <span className="text-sm text-muted-foreground font-normal">%</span>
               </motion.p>
+              <p className="text-muted-foreground/50 text-xs mt-1">visible surface</p>
             </div>
           </motion.div>
 
+          {/* Charts Section Title */}
+          <motion.div 
+            className="w-full max-w-4xl mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h2 className="text-lg font-display font-semibold text-foreground/80 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-green-400" />
+              Market Analysis
+            </h2>
+            <p className="text-muted-foreground/60 text-sm">Price trends and AI-powered insights</p>
+          </motion.div>
+
           {/* Charts */}
-          <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl justify-center mb-6">
+          <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl justify-center mb-8">
             <MiniChart
               data={data.map((d) => ({ date: d.date, price: d.price }))}
               selectedIndex={selectedIndex}
@@ -739,75 +882,108 @@ export const ImmersiveDashboard = () => {
             />
           </div>
 
+          {/* Market Stats Section Title */}
+          <motion.div 
+            className="w-full max-w-4xl mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h2 className="text-lg font-display font-semibold text-foreground/80 flex items-center gap-2">
+              <Gauge className="w-5 h-5 text-amber-400" />
+              Period Performance
+            </h2>
+            <p className="text-muted-foreground/60 text-sm">60-day market statistics</p>
+          </motion.div>
+
           {/* Market Stats Row */}
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-4xl"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <div className="glass-card p-4 hover-lift">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4 text-green-400/70" />
-                <span className="text-muted-foreground text-xs uppercase tracking-wider">
+            <div className="glass-card p-5 hover-lift group border-t-2 border-green-500/50">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                </div>
+                <span className="text-muted-foreground text-xs uppercase tracking-widest font-medium">
                   Period High
                 </span>
               </div>
-              <p className="text-green-400 font-display text-lg font-semibold">
+              <p className="text-green-400 font-display text-2xl font-bold">
                 ${stats.high.toFixed(2)}
               </p>
+              <p className="text-muted-foreground/50 text-xs mt-1">highest price</p>
             </div>
 
-            <div className="glass-card p-4 hover-lift">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4 text-red-400/70 rotate-180" />
-                <span className="text-muted-foreground text-xs uppercase tracking-wider">
+            <div className="glass-card p-5 hover-lift group border-t-2 border-red-500/50">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
+                  <TrendingUp className="w-4 h-4 text-red-400 rotate-180" />
+                </div>
+                <span className="text-muted-foreground text-xs uppercase tracking-widest font-medium">
                   Period Low
                 </span>
               </div>
-              <p className="text-red-400 font-display text-lg font-semibold">
+              <p className="text-red-400 font-display text-2xl font-bold">
                 ${stats.low.toFixed(2)}
               </p>
+              <p className="text-muted-foreground/50 text-xs mt-1">lowest price</p>
             </div>
 
-            <div className="glass-card p-4 hover-lift">
-              <div className="flex items-center gap-2 mb-2">
-                <Gauge className="w-4 h-4 text-amber-400/70" />
-                <span className="text-muted-foreground text-xs uppercase tracking-wider">
+            <div className="glass-card p-5 hover-lift group border-t-2 border-amber-500/50">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-amber-500/10 group-hover:bg-amber-500/20 transition-colors">
+                  <Gauge className="w-4 h-4 text-amber-400" />
+                </div>
+                <span className="text-muted-foreground text-xs uppercase tracking-widest font-medium">
                   Volatility
                 </span>
               </div>
-              <p className="text-foreground font-display text-lg font-semibold">
+              <p className="text-foreground font-display text-2xl font-bold">
                 {stats.volatility.toFixed(1)}%
               </p>
+              <p className="text-muted-foreground/50 text-xs mt-1">price range</p>
             </div>
 
-            <div className="glass-card p-4 hover-lift">
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="w-4 h-4 text-primary/70" />
-                <span className="text-muted-foreground text-xs uppercase tracking-wider">
+            <div className="glass-card p-5 hover-lift group border-t-2 border-primary/50">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                  <Calendar className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-muted-foreground text-xs uppercase tracking-widest font-medium">
                   Full Moons
                 </span>
               </div>
-              <p className="text-foreground font-display text-lg font-semibold">
-                {stats.fullMoons}{" "}
-                <span className="text-sm text-muted-foreground">in period</span>
+              <p className="text-foreground font-display text-2xl font-bold">
+                {stats.fullMoons}
               </p>
+              <p className="text-muted-foreground/50 text-xs mt-1">in this period</p>
             </div>
           </motion.div>
 
           {/* AI Features Section */}
           <motion.div
-            className="w-full max-w-4xl mt-8"
+            className="w-full max-w-4xl mt-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <div className="flex items-center gap-2 mb-4">
-              <Brain className="w-5 h-5 text-purple-400" />
-              <h2 className="text-lg font-display font-semibold text-foreground">AI Insights</h2>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
-                Powered by Mistral AI
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-display font-bold text-foreground flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+                    <Brain className="w-5 h-5 text-purple-400" />
+                  </div>
+                  AI-Powered Insights
+                </h2>
+                <p className="text-muted-foreground/60 text-sm mt-1">
+                  Celestial pattern analysis and market predictions
+                </p>
+              </div>
+              <span className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30 font-medium">
+                ✨ Powered by Mistral AI
               </span>
             </div>
 

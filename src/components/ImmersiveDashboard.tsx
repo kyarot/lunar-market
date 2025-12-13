@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef, memo } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { StarField } from "./StarField";
 import { HeroMoon } from "./HeroMoon";
@@ -6,6 +6,10 @@ import { MiniChart } from "./MiniChart";
 import { InsightPanel } from "./InsightPanel";
 import { ScrollHint } from "./ScrollHint";
 import { MoonCarousel } from "./MoonCarousel";
+import { AIChatAssistant } from "./AIChatAssistant";
+import { PredictiveInsights } from "./PredictiveInsights";
+import { FinancialHoroscope } from "./FinancialHoroscope";
+import { PatternRecognition } from "./PatternRecognition";
 import {
   Moon,
   TrendingUp,
@@ -16,6 +20,7 @@ import {
   RefreshCw,
   Sun,
   CalendarDays,
+  Brain,
 } from "lucide-react";
 import {
   fetchDailyStockData,
@@ -790,8 +795,72 @@ export const ImmersiveDashboard = () => {
               </p>
             </div>
           </motion.div>
+
+          {/* AI Features Section */}
+          <motion.div
+            className="w-full max-w-4xl mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Brain className="w-5 h-5 text-purple-400" />
+              <h2 className="text-lg font-display font-semibold text-foreground">AI Insights</h2>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+                Powered by Mistral AI
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Predictive Insights */}
+              <PredictiveInsights
+                historicalData={data.map(d => ({
+                  date: d.date,
+                  price: d.price,
+                  phaseName: d.phaseName,
+                  illumination: d.illumination
+                }))}
+                stockSymbol={selectedSymbol}
+              />
+
+              {/* Financial Horoscope */}
+              <FinancialHoroscope
+                phaseName={selectedData.phaseName}
+                zodiac={selectedData.zodiac}
+                stockSymbol={selectedSymbol}
+                date={selectedData.date}
+              />
+
+              {/* Pattern Recognition - Full Width */}
+              <div className="md:col-span-2">
+                <PatternRecognition
+                  historicalData={data.map(d => ({
+                    date: d.date,
+                    price: d.price,
+                    phaseName: d.phaseName,
+                    illumination: d.illumination
+                  }))}
+                />
+              </div>
+            </div>
+          </motion.div>
         </main>
       </div>
+
+      {/* AI Chat Assistant - Fixed Position */}
+      <AIChatAssistant
+        context={{
+          phaseName: selectedData.phaseName,
+          illumination: selectedData.illumination,
+          stockSymbol: selectedSymbol,
+          stockPrice: selectedData.price,
+          priceChange: selectedIndex > 0 
+            ? ((selectedData.price - data[selectedIndex - 1].price) / data[selectedIndex - 1].price) * 100 
+            : 0,
+          zodiac: selectedData.zodiac,
+          date: selectedData.date,
+        }}
+      />
     </div>
   );
 };

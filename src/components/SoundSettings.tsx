@@ -1,20 +1,21 @@
 import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Volume2, VolumeX, Music, Music2 } from "lucide-react";
+import { Volume2, VolumeX, Music } from "lucide-react";
 import { cosmicSounds } from "@/lib/sounds";
 
 export const SoundSettings = memo(() => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
   const [volume, setVolume] = useState(0.3);
-  const [ambientVolume, setAmbientVolume] = useState(0.15);
-  const [isAmbientPlaying, setIsAmbientPlaying] = useState(false);
+  const [bgmVolume, setBgmVolume] = useState(0.3);
+  const [isBgmPlaying, setIsBgmPlaying] = useState(true); // BGM on by default
 
   useEffect(() => {
     // Load saved preferences
     const savedEnabled = localStorage.getItem('cosmicSoundsEnabled');
     const savedVolume = localStorage.getItem('cosmicSoundsVolume');
-    const savedAmbientVolume = localStorage.getItem('cosmicAmbientVolume');
+    const savedBgmVolume = localStorage.getItem('cosmicBgmVolume');
+    const savedBgmPlaying = localStorage.getItem('cosmicBgmPlaying');
     
     if (savedEnabled !== null) {
       const enabled = savedEnabled === 'true';
@@ -28,10 +29,25 @@ export const SoundSettings = memo(() => {
       cosmicSounds.setVolume(vol);
     }
 
-    if (savedAmbientVolume !== null) {
-      const vol = parseFloat(savedAmbientVolume);
-      setAmbientVolume(vol);
-      cosmicSounds.setAmbientVolume(vol);
+    if (savedBgmVolume !== null) {
+      const vol = parseFloat(savedBgmVolume);
+      setBgmVolume(vol);
+      cosmicSounds.setBgmVolume(vol);
+    }
+
+    // BGM is ON by default unless user explicitly turned it off
+    const shouldPlayBgm = savedBgmPlaying !== 'false' && savedEnabled !== 'false';
+    
+    if (shouldPlayBgm) {
+      // Start BGM on first user interaction (browser autoplay policy)
+      const startBgmOnInteraction = () => {
+        cosmicSounds.startBgm();
+        setIsBgmPlaying(true);
+        document.removeEventListener('click', startBgmOnInteraction);
+        document.removeEventListener('keydown', startBgmOnInteraction);
+      };
+      document.addEventListener('click', startBgmOnInteraction, { once: true });
+      document.addEventListener('keydown', startBgmOnInteraction, { once: true });
     }
   }, []);
 
@@ -44,7 +60,7 @@ export const SoundSettings = memo(() => {
     if (newEnabled) {
       cosmicSounds.playChime();
     } else {
-      setIsAmbientPlaying(false);
+      setIsBgmPlaying(false);
     }
   };
 
@@ -56,18 +72,24 @@ export const SoundSettings = memo(() => {
     cosmicSounds.playClick();
   };
 
-  const handleAmbientVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBgmVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
-    setAmbientVolume(newVolume);
-    cosmicSounds.setAmbientVolume(newVolume);
-    localStorage.setItem('cosmicAmbientVolume', String(newVolume));
+    setBgmVolume(newVolume);
+    cosmicSounds.setBgmVolume(newVolume);
+    localStorage.setItem('cosmicBgmVolume', String(newVolume));
   };
 
-  const handleToggleAmbient = () => {
+  const handleToggleBgm = () => {
     if (!isEnabled) return;
     
-    const newState = cosmicSounds.toggleAmbient();
-    setIsAmbientPlaying(newState);
+    const newState = !isBgmPlaying;
+    if (newState) {
+      cosmicSounds.startBgm();
+    } else {
+      cosmicSounds.stopBgm();
+    }
+    setIsBgmPlaying(newState);
+    localStorage.setItem('cosmicBgmPlaying', String(newState));
   };
 
   return (
@@ -154,64 +176,64 @@ export const SoundSettings = memo(() => {
             {/* Divider */}
             <div className="border-t border-border/30 my-4" />
 
-            {/* Ambient Space Sound Section */}
+            {/* Background Music Section */}
             <div className="flex items-center gap-2 mb-3">
-              <Music2 className="w-4 h-4 text-cyan-400" />
-              <span className="text-xs font-medium text-foreground">Interstellar Ambience</span>
+              <Music className="w-4 h-4 text-purple-400" />
+              <span className="text-xs font-medium text-foreground">Background Music</span>
             </div>
 
-            {/* Ambient Toggle */}
+            {/* BGM Toggle */}
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-muted-foreground">Space Soundscape</span>
+              <span className="text-xs text-muted-foreground">Space Chords</span>
               <button
-                onClick={handleToggleAmbient}
+                onClick={handleToggleBgm}
                 disabled={!isEnabled}
                 className={`w-10 h-5 rounded-full transition-colors relative disabled:opacity-50 ${
-                  isAmbientPlaying ? 'bg-cyan-500' : 'bg-muted/50'
+                  isBgmPlaying ? 'bg-purple-500' : 'bg-muted/50'
                 }`}
               >
                 <motion.div
                   className="absolute top-0.5 w-4 h-4 rounded-full bg-white"
-                  animate={{ left: isAmbientPlaying ? '22px' : '2px' }}
+                  animate={{ left: isBgmPlaying ? '22px' : '2px' }}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               </button>
             </div>
 
-            {/* Ambient Volume Slider */}
+            {/* BGM Volume Slider */}
             <div className="space-y-2 mb-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Ambient Volume</span>
-                <span className="text-xs text-foreground">{Math.round(ambientVolume * 100)}%</span>
+                <span className="text-xs text-muted-foreground">Music Volume</span>
+                <span className="text-xs text-foreground">{Math.round(bgmVolume * 100)}%</span>
               </div>
               <input
                 type="range"
                 min="0"
-                max="0.5"
+                max="1"
                 step="0.05"
-                value={ambientVolume}
-                onChange={handleAmbientVolumeChange}
+                value={bgmVolume}
+                onChange={handleBgmVolumeChange}
                 disabled={!isEnabled}
                 className="w-full h-1.5 rounded-full appearance-none cursor-pointer disabled:opacity-50"
                 style={{
-                  background: `linear-gradient(to right, hsl(190, 70%, 50%) ${ambientVolume * 200}%, hsl(217, 19%, 20%) ${ambientVolume * 200}%)`,
+                  background: `linear-gradient(to right, hsl(270, 70%, 55%) ${bgmVolume * 100}%, hsl(217, 19%, 20%) ${bgmVolume * 100}%)`,
                 }}
               />
             </div>
 
-            {/* Ambient Status */}
-            {isAmbientPlaying && (
+            {/* BGM Status */}
+            {isBgmPlaying && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center gap-2 text-xs text-cyan-400"
+                className="flex items-center gap-2 text-xs text-purple-400"
               >
                 <motion.div
-                  className="w-2 h-2 rounded-full bg-cyan-400"
+                  className="w-2 h-2 rounded-full bg-purple-400"
                   animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
                 />
-                <span>Playing cosmic ambience...</span>
+                <span>Playing space chords...</span>
               </motion.div>
             )}
 

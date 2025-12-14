@@ -6,7 +6,10 @@ class CosmicSoundEngine {
   private isEnabled: boolean = true;
   private volume: number = 0.3;
   private ambientVolume: number = 0.15;
+  private bgmVolume: number = 0.3;
   private isAmbientPlaying: boolean = false;
+  private isBgmPlaying: boolean = false;
+  private bgmAudio: HTMLAudioElement | null = null;
   private ambientNodes: {
     oscillators: OscillatorNode[];
     gains: GainNode[];
@@ -28,6 +31,7 @@ class CosmicSoundEngine {
     this.isEnabled = enabled;
     if (!enabled) {
       this.stopAmbient();
+      this.stopBgm();
     }
   }
 
@@ -217,6 +221,63 @@ class CosmicSoundEngine {
       this.startAmbient();
     }
     return !this.isAmbientPlaying;
+  }
+
+  // Background Music (BGM) - plays the audio file in loop
+  startBgm() {
+    if (!this.isEnabled || this.isBgmPlaying) return;
+    
+    try {
+      if (!this.bgmAudio) {
+        this.bgmAudio = new Audio('/bgm.mp3');
+        this.bgmAudio.loop = true;
+        this.bgmAudio.volume = this.bgmVolume;
+      }
+      
+      this.bgmAudio.play().then(() => {
+        this.isBgmPlaying = true;
+      }).catch(e => {
+        console.warn('BGM autoplay blocked, will play on user interaction:', e);
+      });
+    } catch (e) {
+      console.warn('BGM failed to start:', e);
+    }
+  }
+
+  stopBgm() {
+    if (!this.bgmAudio || !this.isBgmPlaying) return;
+    
+    try {
+      this.bgmAudio.pause();
+      this.bgmAudio.currentTime = 0;
+      this.isBgmPlaying = false;
+    } catch (e) {
+      console.warn('BGM failed to stop:', e);
+    }
+  }
+
+  toggleBgm() {
+    if (this.isBgmPlaying) {
+      this.stopBgm();
+    } else {
+      this.startBgm();
+    }
+    return this.isBgmPlaying;
+  }
+
+  setBgmVolume(vol: number) {
+    this.bgmVolume = Math.max(0, Math.min(1, vol));
+    if (this.bgmAudio) {
+      this.bgmAudio.volume = this.bgmVolume;
+    }
+  }
+
+  getBgmVolume() {
+    return this.bgmVolume;
+  }
+
+  isBgmActive() {
+    return this.isBgmPlaying;
   }
 
   // Soft click sound - for buttons
@@ -533,6 +594,14 @@ export function useSounds() {
   const getAmbientVolume = useCallback(() => cosmicSounds.getAmbientVolume(), []);
   const isAmbientActive = useCallback(() => cosmicSounds.isAmbientActive(), []);
 
+  // Background music
+  const startBgm = useCallback(() => cosmicSounds.startBgm(), []);
+  const stopBgm = useCallback(() => cosmicSounds.stopBgm(), []);
+  const toggleBgm = useCallback(() => cosmicSounds.toggleBgm(), []);
+  const setBgmVolume = useCallback((vol: number) => cosmicSounds.setBgmVolume(vol), []);
+  const getBgmVolume = useCallback(() => cosmicSounds.getBgmVolume(), []);
+  const isBgmActive = useCallback(() => cosmicSounds.isBgmActive(), []);
+
   return {
     playClick,
     playWhoosh,
@@ -554,5 +623,11 @@ export function useSounds() {
     setAmbientVolume,
     getAmbientVolume,
     isAmbientActive,
+    startBgm,
+    stopBgm,
+    toggleBgm,
+    setBgmVolume,
+    getBgmVolume,
+    isBgmActive,
   };
 }

@@ -9,6 +9,16 @@
 </p>
 
 <p align="center">
+  <a href="https://lunar-market.vercel.app/">
+    <img src="https://img.shields.io/badge/🚀_LIVE_DEMO-lunar--market.vercel.app-00D4FF?style=for-the-badge&labelColor=1a1a2e" alt="Live Demo">
+  </a>
+</p>
+
+<p align="center">
+  <strong>👉 <a href="https://lunar-market.vercel.app/">https://lunar-market.vercel.app/</a> 👈</strong>
+</p>
+
+<p align="center">
   An innovative AI-powered financial visualization platform that explores the mystical correlation between lunar phases and stock market behavior. Built entirely with <strong>AWS Kiro</strong> - the AI-powered IDE that transformed this ambitious project from concept to reality.
 </p>
 

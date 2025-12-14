@@ -46,17 +46,24 @@ export async function fetchDailyStockData(
     }
 
     const stockData: StockDataPoint[] = Object.entries(timeSeries)
-      .map(([dateStr, values]: [string, any]) => ({
-        date: new Date(dateStr),
-        open: parseFloat(values["1. open"]),
-        high: parseFloat(values["2. high"]),
-        low: parseFloat(values["3. low"]),
-        close: parseFloat(values["4. close"]),
-        volume: parseInt(values["5. volume"]),
-      }))
+      .map(([dateStr, values]: [string, any]) => {
+        // Parse date properly to avoid timezone issues
+        // dateStr format is "YYYY-MM-DD"
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const date = new Date(year, month - 1, day, 12, 0, 0); // Set to noon to avoid timezone issues
+        
+        return {
+          date,
+          open: parseFloat(values["1. open"]),
+          high: parseFloat(values["2. high"]),
+          low: parseFloat(values["3. low"]),
+          close: parseFloat(values["4. close"]),
+          volume: parseInt(values["5. volume"]),
+        };
+      })
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    // Return last 60 days
+    // Return last 60 days of available data
     return stockData.slice(-60);
   } catch (error) {
     console.error("Error fetching stock data:", error);

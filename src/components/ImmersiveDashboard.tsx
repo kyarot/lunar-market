@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { StarField } from "./StarField";
 import { HeroMoon } from "./HeroMoon";
 import { MiniChart } from "./MiniChart";
@@ -84,13 +84,12 @@ const mergeData = (stockData: StockDataPoint[]): DayData[] => {
   });
 };
 
-// Generate fallback mock data with calculated moon phases (up to today only)
+// Generate fallback mock data with calculated moon phases
 const generateMockData = (): DayData[] => {
   const today = new Date();
-  today.setHours(12, 0, 0, 0); // Normalize to noon
+  today.setHours(12, 0, 0, 0);
   const data: DayData[] = [];
 
-  // Generate 60 days of historical data ending at today
   for (let i = -59; i <= 0; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() + i);
@@ -124,8 +123,18 @@ export const ImmersiveDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSymbol, setSelectedSymbol] = useState("SPY");
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'info' | 'warning' } | null>(null);
+  const [overrideDate, setOverrideDate] = useState<Date | null>(null); // For weekend/holiday dates
   const moonRef = useRef<HTMLDivElement>(null);
   const prevSelectedIndex = useRef(selectedIndex);
+  
+  // Auto-hide toast after 4 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
   
   // Sound effects
   const { playWhoosh, playChime, playSelect, playAmbientPulse } = useSounds();
@@ -193,7 +202,29 @@ export const ImmersiveDashboard = () => {
   const scrollThreshold = 60;
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const selectedData = data[selectedIndex] || data[0];
+  // Get base data from selected index, but override moon phase if viewing a different date
+  const baseData = data[selectedIndex] || data[0];
+  const selectedData = useMemo(() => {
+    if (overrideDate) {
+      // Calculate moon phase for the override date (weekend/holiday)
+      const moon = calculateMoonPhase(overrideDate);
+      return {
+        ...baseData,
+        date: overrideDate,
+        phase: moon.phase,
+        illumination: moon.illumination,
+        phaseName: moon.phaseName,
+        zodiac: moon.zodiac,
+        distance: moon.distance,
+        age: moon.age,
+        moonName: moon.moonName ? [moon.moonName] : undefined,
+        isSupermoon: isSupermoon(moon),
+        isMicromoon: isMicromoon(moon),
+      };
+    }
+    return baseData;
+  }, [baseData, overrideDate]);
+  
   const avgPrice = useMemo(() => {
     return data.reduce((sum, d) => sum + d.price, 0) / data.length;
   }, [data]);
@@ -231,6 +262,7 @@ export const ImmersiveDashboard = () => {
           return Math.max(0, Math.min(data.length - 1, next));
         });
         scrollAccumulator.current = scrollAccumulator.current * 0.2;
+        setOverrideDate(null); // Clear override when scrolling
       }
 
       setIsScrolling(true);
@@ -254,8 +286,10 @@ export const ImmersiveDashboard = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
         setSelectedIndex((prev) => Math.max(0, prev - 1));
+        setOverrideDate(null); // Clear override when using keyboard
       } else if (e.key === "ArrowRight") {
         setSelectedIndex((prev) => Math.min(data.length - 1, prev + 1));
+        setOverrideDate(null); // Clear override when using keyboard
       }
     };
 
@@ -289,6 +323,7 @@ export const ImmersiveDashboard = () => {
         });
         touchAccumulator.current = 0;
         setIsScrolling(true);
+        setOverrideDate(null); // Clear override when swiping
       }
     },
     [data.length]
@@ -467,7 +502,10 @@ export const ImmersiveDashboard = () => {
               <MoonCarousel
                 phases={data.map((d) => ({ phase: d.phase, date: d.date }))}
                 selectedIndex={selectedIndex}
-                onSelect={setSelectedIndex}
+                onSelect={(index) => {
+                  setSelectedIndex(index);
+                  setOverrideDate(null); // Clear override when selecting from carousel
+                }}
               />
               
               {/* Main Moon */}
@@ -623,15 +661,23 @@ export const ImmersiveDashboard = () => {
               })()}
               onChange={(e) => {
                 if (!e.target.value) return;
-                // Parse the date string properly (YYYY-MM-DD)
                 const [year, month, day] = e.target.value.split("-").map(Number);
                 const targetDate = new Date(year, month - 1, day, 12, 0, 0);
                 
-                // Find the closest date in data
+                // Find exact match first, then closest date
+                let exactIndex = -1;
                 let closestIndex = 0;
                 let closestDiff = Infinity;
                 
                 data.forEach((d, index) => {
+                  // Check for exact date match (same year, month, day)
+                  if (d.date.getFullYear() === year && 
+                      d.date.getMonth() === month - 1 && 
+                      d.date.getDate() === day) {
+                    exactIndex = index;
+                  }
+                  
+                  // Also track closest for fallback
                   const diff = Math.abs(d.date.getTime() - targetDate.getTime());
                   if (diff < closestDiff) {
                     closestDiff = diff;
@@ -639,7 +685,36 @@ export const ImmersiveDashboard = () => {
                   }
                 });
                 
-                setSelectedIndex(closestIndex);
+                // Use exact match if found, otherwise closest
+                const finalIndex = exactIndex !== -1 ? exactIndex : closestIndex;
+                
+                // Check if it's a weekend or no exact match
+                const dayOfWeek = targetDate.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                const noExactMatch = exactIndex === -1;
+                
+                if (isWeekend || noExactMatch) {
+                  // Set override date to show correct moon phase for selected date
+                  setOverrideDate(targetDate);
+                  
+                  if (isWeekend) {
+                    const dayName = dayOfWeek === 0 ? 'Sunday' : 'Saturday';
+                    setToast({
+                      message: `Markets closed on ${dayName}. Moon phase shown for ${targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, stock data from nearest trading day.`,
+                      type: 'info'
+                    });
+                  } else {
+                    setToast({
+                      message: `No trading data for this date. Moon phase shown for ${targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.`,
+                      type: 'info'
+                    });
+                  }
+                } else {
+                  // Exact match found - clear any override
+                  setOverrideDate(null);
+                }
+                
+                setSelectedIndex(finalIndex);
               }}
               min={(() => {
                 const d = data[0]?.date;
@@ -650,7 +725,7 @@ export const ImmersiveDashboard = () => {
                 return `${year}-${month}-${day}`;
               })()}
               max={(() => {
-                // Max date is today
+                // Max date is today (allow selecting weekends for moon phase viewing)
                 const today = new Date();
                 const year = today.getFullYear();
                 const month = String(today.getMonth() + 1).padStart(2, "0");
@@ -681,6 +756,7 @@ export const ImmersiveDashboard = () => {
                 const percentage = x / rect.width;
                 const newIndex = Math.round(percentage * (data.length - 1));
                 setSelectedIndex(Math.max(0, Math.min(data.length - 1, newIndex)));
+                setOverrideDate(null); // Clear override when clicking timeline
               }}
             >
               <motion.div
@@ -1063,6 +1139,51 @@ export const ImmersiveDashboard = () => {
       
       {/* Sound Settings - Fixed Position */}
       <SoundSettings />
+      
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 max-w-md"
+          >
+            <div 
+              className="px-5 py-4 rounded-2xl flex items-start gap-3 shadow-2xl"
+              style={{
+                background: toast.type === 'warning' 
+                  ? "linear-gradient(135deg, hsl(45, 80%, 15%) 0%, hsl(45, 60%, 10%) 100%)"
+                  : "linear-gradient(135deg, hsl(222, 47%, 15%) 0%, hsl(222, 47%, 10%) 100%)",
+                border: toast.type === 'warning'
+                  ? "1px solid rgba(234, 179, 8, 0.3)"
+                  : "1px solid rgba(99, 102, 241, 0.3)",
+                boxShadow: "0 0 40px rgba(0, 0, 0, 0.5)",
+              }}
+            >
+              <div className={`p-2 rounded-lg ${toast.type === 'warning' ? 'bg-yellow-500/20' : 'bg-primary/20'}`}>
+                <Calendar className={`w-4 h-4 ${toast.type === 'warning' ? 'text-yellow-400' : 'text-primary'}`} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground mb-1">
+                  {toast.type === 'warning' ? 'Market Closed' : 'Weekend Selected'}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {toast.message}
+                </p>
+              </div>
+              <button 
+                onClick={() => setToast(null)}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

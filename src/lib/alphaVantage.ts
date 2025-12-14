@@ -1,4 +1,4 @@
-const API_KEY = "7IJ05OW7MC7DX960";
+const API_KEY = "7D8SE8X42I3UU1BY";
 const BASE_URL = "https://www.alphavantage.co/query";
 
 export interface StockDataPoint {
